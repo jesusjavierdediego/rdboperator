@@ -1,0 +1,85 @@
+profile: "dev"
+
+obfuscationkey: "BrOFMYnMp5JgQQf4K6ys9nVqZmZLdOPf"
+
+eventid: "FCAPI_STS_DIDM"
+
+scheduledfreq: 6
+
+pki:
+  entitymodeenabled: false
+  certexpirationtimeyears: 1
+  keybits: 4096
+  keyalgorithm: RSA
+  caremotelocation: CA/
+  rootcertfilename: CA.crt
+  cacertfilename: ca_fexco_egats.crt
+  cakeyfilename: ca_fexco_egats.key
+  cacrlfilename: ca_fexco_egats.crl
+  timeformat: "2006-01-02T15:04:05"
+  standardissuername: Fexco
+  standardissuercountry: IE
+  standardissuerpostcode: V93WN9T
+  standardissuercounty: Kerry
+  standardissuercity: Killorglin
+  standardissueraddress: Langford Street
+  alloweddomains: 
+    - egats.aero
+  allowedauthtokensbasic:
+    - DF8E48A496DC5CBC74817D476E472C58981C2112D93E93F3C15535F4BEA2B3F154826E6C6E8DEADD5F0B13A1B4267AA430BFBEB4031D048346DA44F9C3A34821
+  allowedauthtokensadvanced:
+    - 4EC0B0ACB5D9D8BCE09E52ECA92D64B63FD4280FD4711620EAC8584C1B78E9B8F53560FF850044072D72D24185EA4C341B1B4EE713ECE83DE53B38B60FA185A9
+
+maintenanceStatus:
+  free: Free
+  onMaintenance: OnMaintenance
+
+grpcserver:
+  port: 50051
+  name: STSIDManager
+  timeout: 5
+  mode: debug  
+  path: API/STSIDM/v1
+
+grpcresponse:
+  ok: OK
+  cancelled: CANCELLED
+  invalid: INVALID_ARGUMENT
+  notfound: NOT_FOUND
+  permissiondenied: PERMISSION_DENIED
+  unauthenticated: UNAUTHENTICATED
+  notimplemented: UNIMPLEMENTED
+  internal: INTERNAL
+  notavailable: UNAVAILABLE
+  alreadyexists: ALREADY_EXISTS
+
+cosmosdb:
+  connstring: mongodb://ftsdev-cp-ci-cosmosdb:dmkZKbmJ4v0dikXtepBJhUbJkk4jqZqq2UUpi5uTsTN9I1uS35eY8kWBhW6AZC15RBf1PHNAaXgzujqPLWbq9w==@ftsdev-cp-ci-cosmosdb.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&maxIdleTimeMS=120000&retrywrites=false
+  database: ftsdev-cp-ci-cosmosdb
+  pki: STS_PKI
+  eventstore: STS_EndpointEvent
+  customer: STS_Users
+
+azkv:
+  baseurl: https://stspki.vault.azure.net/
+  subscriptionid: 51964744-6df8-46a1-8a2a-5de26a6e1576
+  tenant: fexcosoftwareoutlook.onmicrosoft.com
+  directoryid: 6485482a-ea77-4005-b06a-5d6a48f8e3b5
+  azureappclientid: 24fe116b-f6d2-4ef1-884a-4ca98115e568
+  azureappclientsecret: c/i8lsbKwx8gobimjcQ1p?+D.OgJdDw0
+
+azstoreusers:
+  account: fts0ne0jdediego
+  key: 75pIUxgVyyGDhlHznhCHaEu854L4ae1ZlaBnGgUYDxCHTxxfDOgtyN80wT+WereZbPrHrI/Upnc0PVjKl/WFNw==
+  name: stsidmusers
+
+azstoreca:
+  account: fts0ne0jdediego
+  key: 75pIUxgVyyGDhlHznhCHaEu854L4ae1ZlaBnGgUYDxCHTxxfDOgtyN80wT+WereZbPrHrI/Upnc0PVjKl/WFNw== 
+  name: stsidmca
+
+messagebustopic:
+  namespace: ftsdevdid
+  keyname: STSIDManagerProducer
+  keyvalue: 6aq+p5gj5BNC/goWNf9NY5E4JSI2Otti3Xs+/yXJTp8=
+  topicname: idmanagernews

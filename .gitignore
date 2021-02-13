@@ -1,0 +1,29 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.lock
+*.toml
+.scannerwork/
+
+stsidmanager
+
+# Test binary, build with `go test -c`
+*.test
+
+# Test
+*.key
+*.pfx
+*.pem
+*.crt
+*.crl
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+vendor/
+reports/
+bin/
+.vscode/
+#  resources/
