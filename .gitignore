@@ -8,7 +8,7 @@
 *.toml
 .scannerwork/
 
-stsidmanager
+gitreader
 
 # Test binary, build with `go test -c`
 *.test

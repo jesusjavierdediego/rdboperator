@@ -26,7 +26,8 @@ func TestConfiguration(t *testing.T) {
 		conf := GlobalConfiguration
 
 		So(conf, ShouldNotBeNil)
-		So(conf.GrpcServer.Name, ShouldEqual, "STSIDManager")
-		So(conf.Pki.Cakeyfilename, ShouldEqual, "ca_fexco_egats.key")
+		So(conf.GrpcServer.Name, ShouldEqual, "Git_Reader")
+		So(conf.Gitserver.Url, ShouldEqual, "http://git-server:3000")
+		So(conf.Gitserver.Username, ShouldEqual, "TestOrchestrator")
 	})
 }

@@ -1,5 +1,6 @@
 FROM golang:alpine as golang
 RUN apk add --no-cache git
+RUN go get -v -tags=sqlite_vtable github.com/augmentable-dev/askgit
 WORKDIR $GOPATH/src/xqledger/gitreader
 COPY . ./
 ADD https://github.com/golang/dep/releases/download/v0.5.0/dep-linux-amd64 /usr/bin/dep

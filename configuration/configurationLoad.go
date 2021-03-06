@@ -12,18 +12,9 @@ var GlobalConfiguration Configuration
 
 type Configuration struct {
 	Profile        string
-	Obfuscationkey string
-	Eventid string
-	Scheduledfreq int
-	Messagebustopic messagebustopic
-	Pki		pki
 	GrpcServer     grpcServer
-	Cosmosdb cosmosdb
-	Azkv azkv
-	Azstoreusers 	azstoreusers
-	Azstoreca 	azstoreca
-	MaintenanceStatus maintenanceStatus
 	Grpcresponse grpcresponse
+	Gitserver    gitserver
 }
 
 
@@ -40,48 +31,6 @@ type grpcresponse struct {
 	Alreadyexists string 
 }
 
-type cosmosdb struct {
-	Connstring       string
-	Database string
-	Pki       string
-	Events     string
-	Customers   string
-}
-
-type messagebustopic struct {
-	Namespace string
-	Keyname string
-	Keyvalue string
-	Topicname string
-}
-
-type pki struct {
-	Entitymodeenabled bool
-	Certexpirationtimeyears    int
-	Keybits    int
-	Keyalgorithm string
-	Caremotelocation string
-	Rootcertfilename    string
-	Cacertfilename    string
-	Cakeyfilename    string
-	Cacrlfilename string
-	Timeformat string
-	Standardissuername string
-	Standardissuercountry string
-	Standardissuerpostcode string
-	Standardissuercounty string
-	Standardissuercity string
-	Standardissueraddress string
-	Alloweddomains []string
-	Allowedauthtokensbasic []string
-	Allowedauthtokensadvanced []string
-}
-
-type maintenanceStatus struct {
-	Free    string
-	OnMaintenance    string
-}
-
 type grpcServer struct {
 	Port    int
 	Name    string
@@ -90,27 +39,15 @@ type grpcServer struct {
 	Path    string
 }
 
-
-type azkv struct {
-	Baseurl string
-  	Subscriptionid string
-  	Tenant string
-  	Directoryid string
-  	Azureappclientid string
-	Azureappclientsecret string
+type gitserver struct {
+	Url string
+	Authtoken string
+	Username string
+	Password string
+	Email string
+	Localreposlocation string
 }
 
-type azstoreusers struct {
-	Account       string
-	Key       string
-	Name     string
-}
-
-type azstoreca struct {
-	Account       string
-	Key       string
-	Name     string
-}
 
 func init() {
 	GlobalConfiguration = initConfiguration()
@@ -141,7 +78,6 @@ func initConfiguration() Configuration {
 	//ENV VARS
 	viper.AutomaticEnv()                                   // Automatic binding from enviroment
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_")) // to charge enviroment
-	viper.SetConfigName("application.dev")
 
 	if strings.ToLower(profile) == "dev" {
 		viper.SetConfigName("application.dev")

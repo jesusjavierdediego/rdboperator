@@ -5,28 +5,26 @@ import (
 	"fmt"
 	"strings"
 	configuration "xqledger/gitreader/configuration"
-	pki "xqledger/gitreader/pki"
 	pb "xqledger/gitreader/protobuf"
 	utils "xqledger/gitreader/utils"
-
+	askgit "xqledger/gitreader/askgit"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 const componentMessage = "GRPC Server"
-const unauthenticatedMsg = "Authorization token for IDM is not valid"
-
 var config = configuration.GlobalConfiguration
-var restClient = utils.GetStandardRestClient()
 
-type DigitalIdentityService struct {
-	request *pb.IDR
+type RecordHistoryService struct {
+	query *pb.Query
 }
 
-func NewDigitalIdentityService(request *pb.IDR) *DigitalIdentityService {
-	return &DigitalIdentityService{request: request}
+func NewRecordHistoryService(query *pb.Query) *RecordHistoryService {
+	return &RecordHistoryService{query: query}
 }
+
+
 
 /*
   ok: OK
@@ -61,44 +59,14 @@ func getErrorResponseMessage(outputErr error) error {
 	return finalErr
 }
 
-func validateIDR(idr *pb.IDR) error {
-	correlationID, _ := utils.GetCorrelationID(idr.String())
+func validateRecordHistoryQuery(query *pb.Query) error {
+	correlationID, _ := utils.GetCorrelationID(query.FilePath + query.RepoName)
 	var msg = ""
-	if !(len(idr.UserId.CompleteName) > 0) {
-		msg = fmt.Sprintf("-Code: %s - Error validating IDR - CompleteName is missing", correlationID)
+	if !(len(query.FilePath) > 0) {
+		msg = fmt.Sprintf("-Code: %s - Error validating RecordHistoryQuery - FilePath is missing", correlationID)
 	}
-	if !(len(idr.UserId.EntityId) > 0) {
-		msg = fmt.Sprintf("-Code: %s - Error validating IDR - EntityId is missing", correlationID)
-	}
-	if !(len(idr.UserId.Country) > 0) {
-		msg = fmt.Sprintf("-Code: %s - Error validating IDR - Country is missing", correlationID)
-	}
-	if !(len(idr.UserId.Postcode) > 0) {
-		msg = fmt.Sprintf("-Code: %s - Error validating IDR - Postcode is missing", correlationID)
-	}
-	if !(len(idr.UserId.Address) > 0) {
-		msg = fmt.Sprintf("-Code: %s - Error validating IDR - Address is missing", correlationID)
-	}
-	if !(len(idr.UserId.City) > 0) {
-		msg = fmt.Sprintf("-Code: %s - Error validating IDR - City is missing", correlationID)
-	}
-	if !(len(idr.UserId.Province) > 0) {
-		msg = fmt.Sprintf("-Code: %s - Error validating IDR - Province is missing", correlationID)
-	}
-	if !(len(idr.UserId.AadUserName) > 0) {
-		msg = fmt.Sprintf("-Code: %s - Error validating IDR - AadUserName is missing", correlationID)
-	}
-	if !(len(idr.Purpose) > 0) {
-		msg = fmt.Sprintf("-Code: %s - Error validating IDR - Purpose is missing", correlationID)
-	}
-	if !(len(idr.Context) > 0) {
-		msg = fmt.Sprintf("-Code: %s - Error validating IDR - Context is missing", correlationID)
-	}
-	if !(len(idr.BusinessId) > 0) {
-		msg = fmt.Sprintf("-Code: %s - Error validating IDR - BusinessId is missing", correlationID)
-	}
-	if !(len(idr.Authtoken) > 0) {
-		msg = fmt.Sprintf("-Code: %s - Error validating IDR - Authtoken is missing", correlationID)
+	if !(len(query.RepoName) > 0) {
+		msg = fmt.Sprintf("-Code: %s - Error validating RecordHistoryQuery - RepoName is missing", correlationID)
 	}
 	if len(msg) > 0 {
 		return errors.New(msg)
@@ -106,98 +74,81 @@ func validateIDR(idr *pb.IDR) error {
 	return nil
 }
 
-func (c *DigitalIdentityService) RegisterNewDID(ctx context.Context, idRequest *pb.IDR) (*pb.Empty, error) {
-	var empty pb.Empty
-	var finalErr error
-	methodMsg := "RegisterNewDID"
-	validErr := validateIDR(idRequest)
-	if validErr != nil {
-		finalErr = getErrorResponseMessage(validErr)
-		return &empty, finalErr
-	}
-	if utils.Contains(config.Pki.Allowedauthtokensbasic, idRequest.Authtoken) || utils.Contains(config.Pki.Allowedauthtokensadvanced, idRequest.Authtoken) {
-		outputErr := pki.GenerateUserCompanyPack(idRequest, restClient)
-		if outputErr != nil {
-			finalErr = getErrorResponseMessage(outputErr)
-			return &empty, finalErr
-		} else {
-			return &empty, nil
-		}
-	} else {
-		utils.PrintLogInfo(componentMessage, methodMsg, unauthenticatedMsg)
-		finalErr = status.Error(codes.Unauthenticated, unauthenticatedMsg)
-		return &empty, finalErr
-	}
+func commitTpPBCommit(commit askgit.Commit) *pb.Commit {
+	var c pb.Commit
+	c.Id= commit.Id
+	c.Message = commit.Message
+	c.AuthorEmail = commit.Author_email
+	c.AuthorName = commit.Author_name
+	c.AuthorWhen = commit.Author_when
+	c.CommitterEmail = commit.Committer_email
+	c.CommitterName = commit.Committer_name
+	c.CommitterWhen = commit.Committer_when
+	c.ParentCount = int32(commit.Parent_count)
+	c.ParentId = commit.Parent_id
+	c.Summary = commit.Summary
+	return &c
 }
 
-func (c *DigitalIdentityService) GetDID(ctx context.Context, idRequest *pb.IDR) (*pb.IDRes, error) {
-	var empty pb.IDRes
+func (s *RecordHistoryService) GetRecordHistory(ctx context.Context, query *pb.Query) (*pb.RecordHistory, error) {
+	var result pb.RecordHistory
 	var finalErr error
-	methodMsg := "GetDID"
-	validErr := validateIDR(idRequest)
+	methodMsg := "GetRecordHistory"
+	validErr := validateRecordHistoryQuery(query)
 	if validErr != nil {
 		finalErr = getErrorResponseMessage(validErr)
-		return &empty, finalErr
+		return &result, finalErr
 	}
-	if utils.Contains(config.Pki.Allowedauthtokensadvanced, idRequest.Authtoken) {
-		output, outputErr := pki.GetUserCompanyPack(idRequest, restClient)
-		if outputErr != nil {
-			finalErr = getErrorResponseMessage(outputErr)
-			return &empty, finalErr
-		} else {
-			return output, nil
-		}
-	} else {
-		utils.PrintLogInfo(componentMessage, methodMsg, unauthenticatedMsg)
-		finalErr = status.Error(codes.Unauthenticated, unauthenticatedMsg)
-		return &empty, finalErr
+	commits, err := askgit.GetRecordHistory(query.FilePath, query.RepoName)
+	if err != nil {
+		finalErr = getErrorResponseMessage(err)
+		utils.PrintLogError(err, componentMessage, methodMsg, finalErr.Error())
+		return &result, finalErr
+	} 
+	var list []*pb.Commit
+	for _, commit := range commits {
+		pbc := commitTpPBCommit(commit)
+		list = append(list, pbc)
 	}
+	result.Commits = list
+
+	return &result, nil
 }
 
-func (c *DigitalIdentityService) PartialRevokeDID(ctx context.Context, idRequest *pb.IDR) (*pb.Empty, error) {
-	var empty pb.Empty
+func (s *RecordHistoryService) GetContentInCommit(ctx context.Context, query *pb.Query) (*pb.CommitContent, error) {
+	var result pb.CommitContent
 	var finalErr error
-	methodMsg := "PartialRevokeDID"
-	validErr := validateIDR(idRequest)
+	methodMsg := "GetContentInCommit"
+	validErr := validateRecordHistoryQuery(query)
 	if validErr != nil {
 		finalErr = getErrorResponseMessage(validErr)
-		return &empty, finalErr
+		return &result, finalErr
 	}
-	if utils.Contains(config.Pki.Allowedauthtokensbasic, idRequest.Authtoken) || utils.Contains(config.Pki.Allowedauthtokensadvanced, idRequest.Authtoken) {
-		outputErr := pki.RevokeUserCompanyPack(idRequest)
-		if outputErr != nil {
-			finalErr = getErrorResponseMessage(outputErr)
-			return &empty, finalErr
-		} else {
-			return &empty, nil
-		}
-	} else {
-		utils.PrintLogInfo(componentMessage, methodMsg, unauthenticatedMsg)
-		finalErr = status.Error(codes.Unauthenticated, unauthenticatedMsg)
-		return &empty, finalErr
-	}
+	content, err := askgit.GetContentInCommit(query.CommitIdOld, query.FilePath, query.RepoName)
+	if err != nil {
+		finalErr = getErrorResponseMessage(err)
+		utils.PrintLogError(err, componentMessage, methodMsg, finalErr.Error())
+		return &result, finalErr
+	} 
+	result.Content = content
+	return &result, nil
 }
 
-func (c *DigitalIdentityService) CompleteRevokeDID(ctx context.Context, idRequest *pb.IDR) (*pb.Empty, error) {
-	var empty pb.Empty
+func (s *RecordHistoryService) GetDiffTwoCommitsInFile(ctx context.Context, query *pb.Query) (*pb.DiffHtml, error) {
+	var result pb.DiffHtml
 	var finalErr error
-	methodMsg := "CompleteRevokeDID"
-	validErr := validateIDR(idRequest)
+	methodMsg := "GetDiffTwoCommitsInFile"
+	validErr := validateRecordHistoryQuery(query)
 	if validErr != nil {
 		finalErr = getErrorResponseMessage(validErr)
-		return &empty, finalErr
+		return &result, finalErr
 	}
-	if utils.Contains(config.Pki.Allowedauthtokensadvanced, idRequest.Authtoken) {
-		outputErr := pki.RevokeAllUserCompanyPacks(idRequest)
-		if outputErr != nil {
-			finalErr = getErrorResponseMessage(outputErr)
-			return &empty, finalErr
-		} else {
-			return &empty, nil
-		}
-	} else {
-		utils.PrintLogInfo(componentMessage, methodMsg, unauthenticatedMsg)
-		finalErr = status.Error(codes.Unauthenticated, unauthenticatedMsg)
-		return &empty, finalErr
-	}
+	htmlDiff, err := askgit.GetDiffTwoCommitsInFile(query.CommitIdOld, query.CommitIdNew, query.FilePath, query.RepoName)
+	if err != nil {
+		finalErr = getErrorResponseMessage(err)
+		utils.PrintLogError(err, componentMessage, methodMsg, finalErr.Error())
+		return &result, finalErr
+	} 
+	result.Html = htmlDiff
+	return &result, nil
 }

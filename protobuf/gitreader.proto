@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package gitreaderproto;
+
+option go_package = ".;protobuf";
+option optimize_for = SPEED;
+/*
+	Generate the Go code from the events.proto file using the protobuf folder as the output destination:
+	'protoc -I=./protobuf --go_out=plugins=grpc:./protobuf ./protobuf/gitreader.proto'
+*/
+
+message Commit {
+    string id = 1;
+    string message = 2;
+    string summary = 3;
+    string author_name = 4;
+    string author_email = 5;
+    string author_when = 6;
+    string committer_name = 7;
+    string committer_email = 8;
+    string committer_when = 9;
+    string parent_id = 10;
+    int32 parent_count = 11;
+}
+
+message RecordHistory {
+    repeated Commit commits = 12;
+}
+
+
+message Query {
+    string commit_id_old = 13;
+    string commit_id_new = 14;
+    string file_path = 15;
+    string repo_name = 16;
+}
+
+message CommitContent {
+    string content = 17;
+}
+
+message DiffHtml {
+    string html = 18;
+}
+
+message Empty {}
+
+service RecordHistoryService {
+    rpc GetRecordHistory(Query) returns (RecordHistory){}
+    rpc GetContentInCommit(Query) returns (CommitContent){}
+    rpc GetDiffTwoCommitsInFile(Query) returns (DiffHtml){}
+}
