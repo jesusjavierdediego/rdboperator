@@ -7,9 +7,19 @@ import (
 	"math/big"
 	"strconv"
 	"time"
-	config "xqledger/gitreader/configuration"
+	"encoding/hex"
+	config "xqledger/rdboperator/configuration"
 )
+
 var configuration = config.GlobalConfiguration
+
+func GetRDBID() (string, error) {
+	bytes := make([]byte, 12)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
+}
 
 func Contains(s []string, e string) bool {
 	for _, a := range s {
@@ -35,7 +45,6 @@ func GetFormattedNow() string {
 		t.Hour(), t.Minute(), t.Second())
 	return formatted
 }
-
 
 func AddTimeToNowEpoch(years int, months int, days int) int64 {
 	t := time.Now()

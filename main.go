@@ -4,53 +4,33 @@ import (
 	"fmt"
 	"net"
 	"strconv"
-	//"time"
-	configuration "xqledger/gitreader/configuration"
-	grpcserver "xqledger/gitreader/grpc"
-	pb "xqledger/gitreader/protobuf"
-	//scheduled "xqledger/gitreader/scheduled"
-	utils "xqledger/gitreader/utils"
-
+	configuration "xqledger/rdboperator/configuration"
+	grpcserver "xqledger/rdboperator/grpc"
+	pb "xqledger/rdboperator/protobuf"
+	"xqledger/rdboperator/kafka"
+	utils "xqledger/rdboperator/utils"
 	"google.golang.org/grpc"
 )
 
 const componentMessage = "Main process"
 
-// func startScheduledTasks(c configuration.Configuration) {
-// 	methodMessage := "startScheduledTasks"
-// 	for true {
-// 		time.Sleep(time.Duration(c.Scheduledfreq) * time.Hour)
-// 		utils.PrintLogInfo(componentMessage, methodMessage, "Scheduled action to detect expired ID Packs starts: %s")
-// 		scheduled.ReviewIDPacks()
-// 	}
-// }
-
 func main() {
 	config := configuration.GlobalConfiguration
-	// Start scheduled tasks
-	/*go startScheduledTasks(config)
-	go func() {
-		for msg := range utils.LTRTasks {
-			utils.PrintLogInfo("Main", "Start services", "LRT channel - Message: "+msg)
-		}
-	}()*/
 
+	utils.PrintLogInfo("RDB Reader", componentMessage, "Start listening topic with incoming successful writing events")
+	go kafka.StartListeningEvents(config.Kafka.Gitactionbacktopic)
+
+	
 	//Start gRPC service's server
 	grpcPort := config.GrpcServer.Port
 	listener, listenerErr := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if listenerErr != nil {
 		utils.PrintLogError(listenerErr, componentMessage, "Starting", "Error")
 	}
-	utils.PrintLogInfo(componentMessage, "Starting", "Starting Git Reasder gRPC services on port "+strconv.Itoa(grpcPort))
-	service := pb.RecordHistoryServiceServer(&grpcserver.RecordHistoryService{})
+	utils.PrintLogInfo(componentMessage, "Starting", "Starting RDB operator gRPC services on port "+strconv.Itoa(grpcPort))
+	service := pb.RecordQueryServiceServer(&grpcserver.RecordQueryService{})
 	server := grpc.NewServer()
-	pb.RegisterRecordHistoryServiceServer(server, service)
-
-	/*
-	service := pb.DigitalIdentityServiceServer(&grpcserver.DigitalIdentityService{})
-	server := grpc.NewServer()
-	pb.RegisterDigitalIdentityServiceServer(server, service)
-	*/
+	pb.RegisterRecordQueryServiceServer(server, service)
 
 	if err := server.Serve(listener); err != nil {
 		utils.PrintLogError(listenerErr, componentMessage, "Grpc Server start", "Error")

@@ -13,22 +13,8 @@ var GlobalConfiguration Configuration
 type Configuration struct {
 	Profile        string
 	GrpcServer     grpcServer
-	Grpcresponse grpcresponse
-	Gitserver    gitserver
-}
-
-
-type grpcresponse struct {
-	Ok string
-	Cancelled string
-  	Invalid string
-  	Notfound string
-	Permissiondenied string
-	Unauthenticated string
-	Notimplemented string
-	Internal string
-	Notavailable string
-	Alreadyexists string 
+	Kafka 		 kafka
+	Rdb          rdb
 }
 
 type grpcServer struct {
@@ -39,13 +25,27 @@ type grpcServer struct {
 	Path    string
 }
 
-type gitserver struct {
-	Url string
-	Authtoken string
+type rdb struct {
+	Host    string
+	Database    string
 	Username string
-	Password string
-	Email string
-	Localreposlocation string
+	Password    string
+	Poolsize  int
+	Timeout   int
+}
+
+type kafka struct {
+	Bootstrapserver string
+	Groupid string
+  	Sessiontimeout int
+  	Eventschannelenabled bool
+	Rebalanceenabled bool
+	Partitioneofenabled bool
+	Autooffset string
+	Rdbinputtopic string
+	Gitactionbacktopic string
+	Messageminsize int
+	Messagemaxsize int
 }
 
 

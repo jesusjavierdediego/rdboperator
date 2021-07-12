@@ -1,28 +1,30 @@
 profile: dev
 
 grpcserver:
-  port: 50051
+  port: 50052
   name: Git_Reader
   timeout: 5
   mode: debug  
   path: api/gitreader/v1
 
-grpcresponse:
-  ok: OK
-  cancelled: CANCELLED
-  invalid: INVALID_ARGUMENT
-  notfound: NOT_FOUND
-  permissiondenied: PERMISSION_DENIED
-  unauthenticated: UNAUTHENTICATED
-  notimplemented: UNIMPLEMENTED
-  internal: INTERNAL
-  notavailable: UNAVAILABLE
-  alreadyexists: ALREADY_EXISTS
 
-gitserver:
-  url: http://git-server:3000
-  authtoken: 1234sw
-  username: TestOrchestrator
-  password: TestOrchestrator
-  email: TestOrchestrator@xqledger.com
-  localreposlocation: "/Users/administrator/workspace/projects/go/src/xqledger/xp-lab/diff/"
+rdb:
+  host: 127.0.0.1
+  database: TestRepository
+  username: xqledger
+  password: toor
+  poolsize: 2
+  timeout: 30
+  
+kafka:
+  bootstrapserver: "localhost:9094"
+  groupid: RDBReaderCG
+  sessiontimeout: 5000
+  eventschannelenabled: true  
+  rebalanceenabled: true
+  partitioneofenabled: true
+  autooffset: earliest
+  rdbinputtopic: gitoperator-in
+  gitactionbacktopic: gitoperator-out
+  messageminsize: 10e3
+  messagemaxsize: 10e6

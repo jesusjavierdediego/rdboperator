@@ -1,7 +1,7 @@
 package utils
 
 import (
-	config "xqledger/gitreader/configuration"
+	config "xqledger/rdboperator/configuration"
 
 	logger "github.com/sirupsen/logrus"
 )
