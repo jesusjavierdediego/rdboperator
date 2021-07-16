@@ -18,7 +18,7 @@ import (
 const componentMessage = "MongoDB Client"
 
 var config = configuration.GlobalConfiguration
-var client *mongo.Client
+var client *mongo.Client = nil
 var ctx context.Context
 
 
@@ -41,8 +41,7 @@ func getRDBClient() (*mongo.Client, error) {
 	}
 	clientOptions := options.Client().ApplyURI(uri)
 	clientOptions = clientOptions.SetMaxPoolSize(uint64(config.Rdb.Poolsize))
-	userclient, err := mongo.Connect(ctx, clientOptions)
-	client = userclient
+	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		utils.PrintLogError(err, componentMessage, methodMsg, "Error connecting to MongoDB")
 		return nil, err

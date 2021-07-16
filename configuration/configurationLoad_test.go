@@ -26,8 +26,6 @@ func TestConfiguration(t *testing.T) {
 		conf := GlobalConfiguration
 
 		So(conf, ShouldNotBeNil)
-		So(conf.GrpcServer.Name, ShouldEqual, "Git_Reader")
-		So(conf.Gitserver.Url, ShouldEqual, "http://git-server:3000")
-		So(conf.Gitserver.Username, ShouldEqual, "TestOrchestrator")
+		So(conf.GrpcServer.Name, ShouldEqual, "RDB_Reader")
 	})
 }
