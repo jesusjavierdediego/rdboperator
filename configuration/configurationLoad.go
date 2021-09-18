@@ -12,17 +12,8 @@ var GlobalConfiguration Configuration
 
 type Configuration struct {
 	Profile        string
-	GrpcServer     grpcServer
 	Kafka 		 kafka
 	Rdb          rdb
-}
-
-type grpcServer struct {
-	Port    int
-	Name    string
-	Timeout int32
-	Mode    string
-	Path    string
 }
 
 type rdb struct {

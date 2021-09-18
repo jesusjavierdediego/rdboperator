@@ -50,49 +50,6 @@ func getRDBClient() (*mongo.Client, error) {
 	return client, nil
 }
 
-/*
-The result is returned in the shape of an array of maps (key: string, value: any type)
-*/
-func RunQuery(dbName string, colName string, query string) ([]map[string]interface{}, error) {
-	methodMsg := "RunQuery"
-	rdbClient, err := getRDBClient()
-	if err != nil {
-		utils.PrintLogError(err, componentMessage, methodMsg, "Error getting MongoDB client")
-		return nil, err
-	}
-	col := rdbClient.Database(dbName).Collection(colName)
-	cursor, err := col.Find(context.TODO(), bson.D{})
-	if err != nil {
-		utils.PrintLogError(err, componentMessage, methodMsg, "Finding all documents error")
-		defer cursor.Close(ctx)
-	}
-	var resultSet []map[string]interface{}
-
-	for cursor.Next(ctx) {
-		var result bson.M
-		err := cursor.Decode(&result)
-		if err != nil {
-			utils.PrintLogError(err, componentMessage, methodMsg, "Reading cursor decoding error")
-		} else {
-			//mongoId := result["_id"]
-			//mongoIdAsStr := mongoId.(primitive.ObjectID).Hex()
-			var r = make(map[string]interface{})
-			for k, v := range result {
-				// if k == "_id" {
-				// 	r[k] = mongoIdAsStr
-				// } else {
-				// 	r[k] = v
-				// }
-				r[k] = v
-			}
-			resultSet = append(resultSet, r)
-		}
-	}
-	defer cursor.Close(ctx)
-	utils.PrintLogInfo(componentMessage, methodMsg, fmt.Sprintf("Records in collection %s, database %s obtained OK", colName, dbName))
-	return resultSet, nil
-}
-
 func getID(m map[string]interface{}) string {
 	var id = ""
 	for k, v := range m {
