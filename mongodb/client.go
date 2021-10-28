@@ -2,63 +2,59 @@ package mongodb
 
 import (
 	"context"
-	"fmt"
-	"time"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"strings"
-	utils "xqledger/rdboperator/utils"
+	"time"
 	configuration "xqledger/rdboperator/configuration"
+	utils "xqledger/rdboperator/utils"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	//"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const componentMessage = "MongoDB Client"
 
 var config = configuration.GlobalConfiguration
 var client *mongo.Client = nil
-var ctx context.Context
 
-
-func getRDBClient() (*mongo.Client, error) {
+func getRDBClient() (*mongo.Client, context.Context, error) {
 	methodMsg := "getRDBClient"
 	if client != nil {
 		utils.PrintLogInfo(componentMessage, methodMsg, "Existing MongoDB Client obtained OK")
-		return client, nil
+		return client, nil, nil
 	}
 	uri := fmt.Sprintf(
-		"mongodb://%s:%s@%s:%d/admin?authSource=admin",
+		"mongodb://%s:%s@%s:%d/TestRepository?authSource=admin&w=majority&retryWrites=true",
 		config.Rdb.Username,
 		config.Rdb.Password,
 		config.Rdb.Host,
 		27017,
 	)
-	if ctx == nil {
-		c, _ := context.WithTimeout(context.Background(), time.Duration(config.Rdb.Timeout) * time.Second)
-		ctx = c
-	}
+	c, _ := context.WithTimeout(context.Background(), time.Duration(config.Rdb.Timeout) * time.Second)
 	clientOptions := options.Client().ApplyURI(uri)
 	clientOptions = clientOptions.SetMaxPoolSize(uint64(config.Rdb.Poolsize))
-	client, err := mongo.Connect(ctx, clientOptions)
+	client, err := mongo.Connect(c, clientOptions)
 	if err != nil {
 		utils.PrintLogError(err, componentMessage, methodMsg, "Error connecting to MongoDB")
-		return nil, err
+		return nil, nil, err
 	}
 	utils.PrintLogInfo(componentMessage, methodMsg, "New MongoDB Client obtained OK")
-	return client, nil
+	return client, c, nil
 }
 
-func getID(m map[string]interface{}) string {
-	var id = ""
-	for k, v := range m {
-		if k == "_id" {
-			id = fmt.Sprintf("%v", v)
-		} 
-	}
-	return id
-}
+// func getID(m map[string]interface{}) string {
+// 	var id = ""
+// 	for k, v := range m {
+// 		if k == "id" {
+// 			id = fmt.Sprintf("%v", v)
+// 		} 
+// 	}
+// 	return id
+// }
 
 func HandleEvent(event utils.RecordEvent) {
 	methodMsg := "HandleEvent"
@@ -72,52 +68,43 @@ func HandleEvent(event utils.RecordEvent) {
 		if mapErr != nil {
 			utils.PrintLogError(mapErr, componentMessage, methodMsg, "Error unmarshaling record to map")
 		}
-		switch t := event.OperationType; t {
+		rdbClient, ctx, err := getRDBClient()
+		if err != nil {
+			utils.PrintLogError(err, componentMessage, methodMsg, "Error getting MongoDB client")
+		} else {
+			switch t := event.OperationType; t {
 			case "new":
-				insertRecord(event.DBName, event.Group, "", recordAsMap)
+				insertRecord(rdbClient, ctx, event.DBName, event.Group, event.Id, recordAsMap)
 			case "update":
-				id := getID(recordAsMap)
-				updateRecord(event.DBName, event.Group, id, recordAsMap)
+				//id := getID(recordAsMap)
+				updateRecord(rdbClient, ctx, event.DBName, event.Group, event.Id, recordAsMap)
 			case "delete":
-				id := getID(recordAsMap)
-				deleteRecord(event.DBName, event.Group, id)
+				// id := getID(recordAsMap)
+				deleteRecord(rdbClient, ctx, event.DBName, event.Group, event.Id)
 			default:
 				utils.PrintLogInfo(componentMessage, methodMsg, fmt.Sprintf("Operation not supported: %s", t))
 		}
+		}
+		
 	}
 }
 
-func insertRecord(dbName string, colName string, _id string, recordAsMap map[string]interface{}) (string, error) {
+func insertRecord(client *mongo.Client, ctx context.Context, dbName string, colName string, _id string, recordAsMap map[string]interface{}) (string, error) {
 	methodMsg := "insertRecord"
-	rdbClient, err := getRDBClient()
-	if err != nil {
-		utils.PrintLogError(err, componentMessage, methodMsg, "Error getting MongoDB client")
+	cleanDbName := strings.ReplaceAll(dbName, ".", "")
+	if !(len(colName) > 0){
+		colName = "main"
+	}
+	col := client.Database(cleanDbName).Collection(colName)
+	
+	if len(_id) > 0 { 
+		oid, _ := primitive.ObjectIDFromHex(_id)
+		recordAsMap["_id"] = oid
+	} else {
+		err := errors.New("ID not provided")
 		return "", err
 	}
-	cleanDbName := strings.ReplaceAll(dbName, ".", "")
-	col := rdbClient.Database(cleanDbName).Collection("main")// Hardcoded for now, onluy one collection
-	
-	if len(_id) > 0 { // Case for update
-		// oid, idErr := primitive.ObjectIDFromHex(_id)
-		// fmt.Printf("%s %v", err, _id)
-		// if err != nil {
-		// 	utils.PrintLogError(idErr, componentMessage, methodMsg, "Error converting provided id: " + _id)
-		// 	return "", idErr
-		// }
-		recordAsMap["_id"] = _id
-	} else { // Case for new recvord
-		newID, err := utils.GetRDBID()
-		if err != nil {
-			utils.PrintLogError(err, componentMessage, methodMsg, "Error composing new id")
-			return "", err
-		}
-		recordAsMap["_id"] = newID
-	}
-	
-	if ctx == nil {
-		c, _ := context.WithTimeout(context.Background(), time.Duration(config.Rdb.Timeout) * time.Second)
-		ctx = c
-	}
+
 	result, insertErr := col.InsertOne(ctx, recordAsMap)
 	if insertErr != nil {
 		utils.PrintLogError(insertErr, componentMessage, methodMsg, "Error inserting record in RDB")
@@ -129,34 +116,48 @@ func insertRecord(dbName string, colName string, _id string, recordAsMap map[str
 	return id, nil
 }
 
-
-func updateRecord(dbName string, colName string, _id string, recordAsMap map[string]interface{}) error {
-	methodMsg := "UpdateRecord"
-	delErr := deleteRecord(dbName, colName, _id)
-	if delErr != nil{
-		return delErr
+func updateRecord(client *mongo.Client, ctx context.Context, dbName string, colName string, _id string, recordAsMap map[string]interface{}) error {
+	methodMsg := "updateRecord"
+	cleanDbName := strings.ReplaceAll(dbName, ".", "")
+	if !(len(colName) > 0){
+		colName = "main"
 	}
-	_, insertErr := insertRecord(dbName, colName, _id, recordAsMap)
-	if insertErr != nil {
-		utils.PrintLogError(insertErr, componentMessage, methodMsg, fmt.Sprintf("Error updating record with ID '%s' - Database '%s' - Collection '%s'", _id, dbName, colName))
-		return insertErr
+	col := client.Database(cleanDbName).Collection(colName)
+	
+	if len(_id) > 0 { // Case for update
+		oid, idErr := primitive.ObjectIDFromHex(_id)
+		if idErr != nil {
+			utils.PrintLogError(idErr, componentMessage, methodMsg, "Error converting provided id: " + _id)
+			return idErr
+		}
+		recordAsMap["_id"] = oid
+		_, replaceErr := col.ReplaceOne(ctx, bson.M{"_id": oid}, recordAsMap)
+		if replaceErr != nil {
+			utils.PrintLogError(replaceErr, componentMessage, methodMsg, "Error inserting record in RDB")
+			return replaceErr
+		}
+		utils.PrintLogInfo(componentMessage, methodMsg, fmt.Sprintf("Record replaced successfully with ID '%s' - Database '%s' - Collection '%s'", _id, dbName, colName))
+		return nil
+	} else { // Case for new record
+		err := errors.New("ID not provided")
+		utils.PrintLogError(err, componentMessage, methodMsg, "ID record not provided")
+		return err
 	}
-	utils.PrintLogInfo(componentMessage, methodMsg, fmt.Sprintf("Record inserted successfully with ID '%s' - Database '%s' - Collection '%s'", _id, dbName, colName))
+	
+	
 	return nil
 }
 
-func deleteRecord(dbName string, colName string, _id string) error {
+func deleteRecord(client *mongo.Client, ctx context.Context, dbName string, colName string, _id string) error {
 	methodMsg := "deleteRecord"
-	rdbClient, err := getRDBClient()
-	if err != nil {
-		utils.PrintLogError(err, componentMessage, methodMsg, "Error getting MongoDB client")
-		return err
+	if !(len(colName) > 0){
+		colName = "main"
 	}
-	col := rdbClient.Database(dbName).Collection(colName)
-	_, delErr := col.DeleteOne(ctx, _id)
+	col := client.Database(dbName).Collection(colName)
+	_, delErr := col.DeleteOne(ctx, bson.M{"_id": _id})
 	if delErr != nil {
 		utils.PrintLogError(delErr, componentMessage, methodMsg, fmt.Sprintf("Error deleting record with ID '%s' - Database '%s' - Collection '%s'", _id, dbName, colName))
-		return err
+		return delErr
 	}
 	utils.PrintLogInfo(componentMessage, methodMsg, fmt.Sprintf("Record deleted successfully with ID '%s' - Database '%s' - Collection '%s'", _id, dbName, colName))
 	return nil

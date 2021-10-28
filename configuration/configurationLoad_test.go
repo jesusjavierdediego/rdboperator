@@ -26,6 +26,6 @@ func TestConfiguration(t *testing.T) {
 		conf := GlobalConfiguration
 
 		So(conf, ShouldNotBeNil)
-		So(conf.GrpcServer.Name, ShouldEqual, "RDB_Reader")
+		So(conf.Kafka.Groupid, ShouldEqual, "RDBReaderCG")
 	})
 }

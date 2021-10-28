@@ -14,7 +14,7 @@ import (
 var configuration = config.GlobalConfiguration
 
 func GetRDBID() (string, error) {
-	bytes := make([]byte, 12)
+	bytes := make([]byte, 15)
 	if _, err := rand.Read(bytes); err != nil {
 		return "", err
 	}

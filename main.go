@@ -12,5 +12,5 @@ func main() {
 	config := configuration.GlobalConfiguration
 
 	utils.PrintLogInfo("RDB Operator", componentMessage, "Start listening topic with incoming successful writing events")
-	go kafka.StartListeningEvents(config.Kafka.Gitactionbacktopic)
+	kafka.StartListeningEvents(config.Kafka.Gitactionbacktopic)
 }
