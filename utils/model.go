@@ -10,7 +10,6 @@ type RecordEvent struct {
 	ReceptionTime int64 `json:"reception_time"` // Time of the reception by the API
 	ProcessingTime int64 `json:"processing_time"` // Time of processing by the Git Operator
 	Priority string `json:"priority"`  // API can qualify an event with a priority to be considered in concurrent writing decisions (HIGH | MEDIUM | LOW)
-	Message string `json:"message"`// Commit message. It will contain the ID
 	RecordContent string `json:"record_content"` // empty if op OperationType == delete | update
 	Status string `json:"status"` // PENDING | NOTVALID | INCOMPLETE | COMPLETE
 }
