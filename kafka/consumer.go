@@ -89,7 +89,7 @@ func convertMessageToProcessable(msg kafka.Message) (utils.RecordEvent, error) {
 		return newRecordEvent, unmarshalErr
 	}
 	utils.PrintLogInfo(componentMessage, methodMsg, fmt.Sprintf("ID '%s'", newRecordEvent.Id))
-	utils.PrintLogInfo(componentMessage, methodMsg, fmt.Sprintf("Group '%s'", newRecordEvent.Group))
+	utils.PrintLogInfo(componentMessage, methodMsg, fmt.Sprintf("DB Name '%s'", newRecordEvent.DBName))
 	utils.PrintLogInfo(componentMessage, methodMsg, fmt.Sprintf("OperationType '%s'", newRecordEvent.OperationType))
 	return newRecordEvent, nil
 }

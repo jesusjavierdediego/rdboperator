@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+	<testsuite tests="3" failures="0" time="0.478" name="xqledger/rdboperator/mongodb">
+		<properties>
+			<property name="go.version" value="go1.15.5"></property>
+		</properties>
+		<testcase classname="mongodb" name="TestHandleNewEvent" time="0.040"></testcase>
+		<testcase classname="mongodb" name="TestHandleUpdateEvent" time="0.020"></testcase>
+		<testcase classname="mongodb" name="TestHandleDeleteEvent" time="0.010"></testcase>
+	</testsuite>
+</testsuites>

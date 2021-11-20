@@ -14,12 +14,13 @@ import (
 var configuration = config.GlobalConfiguration
 
 func GetRDBID() (string, error) {
-	bytes := make([]byte, 15)
+	bytes := make([]byte, 15) // 12==24, 15 == 30
 	if _, err := rand.Read(bytes); err != nil {
 		return "", err
 	}
 	return hex.EncodeToString(bytes), nil
 }
+
 
 func Contains(s []string, e string) bool {
 	for _, a := range s {

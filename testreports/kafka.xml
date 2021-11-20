@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+	<testsuite tests="1" failures="0" time="0.000" name="xqledger/rdboperator/kafka">
+		<properties>
+			<property name="go.version" value="go1.15.5"></property>
+		</properties>
+		<testcase classname="kafka" name="TestConvertMessageToProcessable" time="0.000"></testcase>
+	</testsuite>
+</testsuites>

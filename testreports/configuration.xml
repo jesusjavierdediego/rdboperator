@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+	<testsuite tests="2" failures="0" time="0.000" name="xqledger/rdboperator/configuration">
+		<properties>
+			<property name="go.version" value="go1.15.5"></property>
+		</properties>
+		<testcase classname="configuration" name="TestConfigurationDevProfile" time="0.000"></testcase>
+		<testcase classname="configuration" name="TestConfiguration" time="0.000"></testcase>
+	</testsuite>
+</testsuites>

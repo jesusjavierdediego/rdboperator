@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+	<testsuite tests="11" failures="0" time="0.000" name="xqledger/rdboperator/utils">
+		<properties>
+			<property name="go.version" value="go1.15.5"></property>
+		</properties>
+		<testcase classname="utils" name="TestContains" time="0.000"></testcase>
+		<testcase classname="utils" name="TestGetRDBID" time="0.000"></testcase>
+		<testcase classname="utils" name="TestGetCorrelationID" time="0.000"></testcase>
+		<testcase classname="utils" name="TestGetFormattedNow" time="0.000"></testcase>
+		<testcase classname="utils" name="TestGetEpochNow" time="0.000"></testcase>
+		<testcase classname="utils" name="TestGetRandomSerial" time="0.000"></testcase>
+		<testcase classname="utils" name="TestTurnUnixTimestampToString" time="0.000"></testcase>
+		<testcase classname="utils" name="TestAddTimeToNowEpoch" time="0.000"></testcase>
+		<testcase classname="utils" name="TestPrintLogError" time="0.000"></testcase>
+		<testcase classname="utils" name="TestPrintLogWarn" time="0.000"></testcase>
+		<testcase classname="utils" name="TestPrintLogInfo" time="0.000"></testcase>
+	</testsuite>
+</testsuites>
