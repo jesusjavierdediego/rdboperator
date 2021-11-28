@@ -69,26 +69,26 @@ func HandleEvent(event utils.RecordEvent) error {
 	}
 	rdbClient, ctx, err := getRDBClient()
 	if err != nil {
-		utils.PrintLogError(err, componentMessage, methodMsg, "Error getting MongoDB client")
+		utils.PrintLogError(err, componentMessage, methodMsg, utils.Error_unmarshalling_RDB)
 		return err
 	} else {
 		switch t := event.OperationType; t {
 		case "new":
 			_, err := insertRecord(rdbClient, ctx, event.DBName, event.Group, event.Id, recordAsMap)
 			if err != nil {
-				utils.PrintLogError(err, componentMessage, methodMsg, "Error inserting record in RDB")
+				utils.PrintLogError(err, componentMessage, methodMsg, utils.Error_inserting_record_in_RDB)
 				return err
 			}
 		case "update":
 			err := updateRecord(rdbClient, ctx, event.DBName, event.Group, event.Id, recordAsMap)
 			if err != nil {
-				utils.PrintLogError(err, componentMessage, methodMsg, "Error updating record in RDB")
+				utils.PrintLogError(err, componentMessage, methodMsg, utils.Error_updating_record_in_RDB)
 				return err
 			}
 		case "delete":
 			err := deleteRecord(rdbClient, ctx, event.DBName, event.Group, event.Id)
 			if err != nil {
-				utils.PrintLogError(err, componentMessage, methodMsg, "Error deleting record in RDB")
+				utils.PrintLogError(err, componentMessage, methodMsg, utils.Error_deletion_record_in_RDB)
 				return err
 			}
 		default:
@@ -120,7 +120,7 @@ func insertRecord(client *mongo.Client, ctx context.Context, dbName string, colN
 		return "", insertErr
 	}
 	id := fmt.Sprintf("%v", result.InsertedID)
-	utils.PrintLogInfo(componentMessage, methodMsg, fmt.Sprintf("New record inserted successfully with ID '%s' - Database '%s' - Collection '%s'", id, dbName, colName))
+	utils.PrintLogInfo(componentMessage, methodMsg, fmt.Sprintf(utils.Successful_insertion, id, dbName, colName))
 
 	return id, nil
 }
@@ -145,7 +145,7 @@ func updateRecord(client *mongo.Client, ctx context.Context, dbName string, colN
 			utils.PrintLogError(replaceErr, componentMessage, methodMsg, "Error inserting record in RDB")
 			return replaceErr
 		}
-		utils.PrintLogInfo(componentMessage, methodMsg, fmt.Sprintf("Record replaced successfully with ID '%s' - Database '%s' - Collection '%s'", _id, dbName, colName))
+		utils.PrintLogInfo(componentMessage, methodMsg, fmt.Sprintf(utils.Successful_update, _id, dbName, colName))
 		return nil
 	} else { // Case for new record
 		err := errors.New("ID not provided")
@@ -167,6 +167,6 @@ func deleteRecord(client *mongo.Client, ctx context.Context, dbName string, colN
 		utils.PrintLogError(delErr, componentMessage, methodMsg, fmt.Sprintf("Error deleting record with ID '%s' - Database '%s' - Collection '%s'", _id, dbName, colName))
 		return delErr
 	}
-	utils.PrintLogInfo(componentMessage, methodMsg, fmt.Sprintf("Record deleted successfully with ID '%s' - Database '%s' - Collection '%s'", _id, dbName, colName))
+	utils.PrintLogInfo(componentMessage, methodMsg, fmt.Sprintf(utils.Successful_delete, _id, dbName, colName))
 	return nil
 }
