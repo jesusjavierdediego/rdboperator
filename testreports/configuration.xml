@@ -2,7 +2,7 @@
 <testsuites>
 	<testsuite tests="2" failures="0" time="0.000" name="xqledger/rdboperator/configuration">
 		<properties>
-			<property name="go.version" value="go1.15.5"></property>
+			<property name="go.version" value="go1.17.8"></property>
 		</properties>
 		<testcase classname="configuration" name="TestConfigurationDevProfile" time="0.000"></testcase>
 		<testcase classname="configuration" name="TestConfiguration" time="0.000"></testcase>

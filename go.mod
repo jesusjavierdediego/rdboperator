@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.1.2
+	github.com/jstemmer/go-junit-report v1.0.0 // indirect
 	github.com/segmentio/kafka-go v0.4.17
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v1.6.4
